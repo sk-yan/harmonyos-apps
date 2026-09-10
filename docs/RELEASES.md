@@ -9,11 +9,11 @@ Git 标签格式为：
 ```text
 <app-id>-v<version>
 yibi-ledger-v1.0.0-preview.1
-yibi-ledger-v1.0.0-preview.2
-yibi-ledger-v1.0.0
+yibi-ledger-v1.1.0-preview.1
+yibi-ledger-v1.1.0
 ```
 
-首次一笔记账使用 `yibi-ledger-v1.0.0-preview.1`，并在 GitHub Release 勾选 **pre-release**。原生 `AppScope/app.json5` 的 `versionName` 是 `1.0.0`；Git 标签的 `preview.1` 说明这次分发的成熟度，不会自动改变原生包版本。更新原生包时需按 HarmonyOS 规则维护 `versionCode`，不要只改 Git 标签。
+一笔记账首次标签为 `yibi-ledger-v1.0.0-preview.1`；当前版本使用 `yibi-ledger-v1.1.0-preview.1`，在 GitHub Release 勾选 **pre-release**。原生 `AppScope/app.json5` 的 `versionName` 为 `1.1.0`，`versionCode` 为 `1001000`。Git 标签的 `preview.1` 说明分发成熟度，不会自动改变原生包版本。更新应用时需同时维护原生版本和版本码。
 
 合集不使用一个全局版本代表所有 App。GitHub 的“Latest”可能只对应最近发布的某个应用；查找指定 App 时，应从根 README 或 `apps.json` 的具体标签进入。
 
@@ -39,6 +39,8 @@ yibi-ledger-v1.0.0
 
 ## 本次一笔记账的边界
 
-`1.0.0-preview.1` 是未签名的模拟器预览。已有 HarmonyOS 6.1.0（API 23）模拟器验收，使用 Mate X5 折叠屏模板；Mate X6 真机签名、安装和验收尚未完成。没有应用市场上架记录。
+`1.1.0-preview.1` 是未签名的开发预览，增加本地文件导入和截图辅助录入。各层实测情况分别记录在[验证说明](VALIDATION.md)与[改进记录](IMPROVEMENTS-1.1.md)。已在 Mate X6 完成本地调试签名、安装启动与部分 GBK 账单检查；完整真机回归和原生图片 OCR 仍未完成；模拟器不支持该系统 OCR 能力。没有应用市场上架记录。
+
+1.1 保持旧账本可读，但旧版应用重新保存时会丢失新导入身份字段，影响去重。Release 说明需提醒启用导入功能后避免降级，不能把 v1 文件格式兼容宣传为双向降级无损。
 
 仓库尚未选定源代码许可证。不要在 Release 或宣传文案中将它标为 MIT、Apache 或其他开源许可。

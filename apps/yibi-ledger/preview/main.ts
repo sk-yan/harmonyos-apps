@@ -5,6 +5,7 @@ import {
 } from '../entry/src/main/ets/model/Ledger';
 import type { EntryType, LedgerEntry } from '../entry/src/main/ets/model/Ledger';
 import './style.css';
+import { createImportFlow } from './import-flow';
 
 const STORAGE_KEY = 'yibi-ledger-v1';
 const iconPaths: Record<string, string> = {
@@ -50,11 +51,13 @@ let storageReady = false;
 let lastLoadedRaw: string | null = null;
 let storageError = '';
 let notice = '';
+let lastImportIds: string[] = [];
 let returnFocus: HTMLElement | null = null;
 let dirty = false;
+let draftSource: 'screenshot' | undefined;
 let editedEntry: LedgerEntry | null = null;
 let draft = emptyDraft();
-const narrow = window.matchMedia('(max-width: 719px)');
+const narrow = window.matchMedia('(max-width: 679px)');
 
 function emptyDraft() { return { type: 'expense' as EntryType, amount: '', categoryId: getCategories('expense')[0].id, date: todayString(), note: '' }; }
 
@@ -63,7 +66,7 @@ app.innerHTML = `
   <div class="app-shell">
     <header class="app-header">
       <a class="brand" href="#" aria-label="一笔记账首页"><span class="brand-mark">${icon('book')}</span><span>一笔<span class="brand-light">记账</span></span></a>
-      <div class="header-note"><span class="privacy-dot"></span><span>把日子，记清楚</span></div>
+      <div class="header-actions"><button id="open-import" type="button" class="header-action" aria-label="导入账单">${icon('down')}<span>导入</span></button><button id="open-screenshot" type="button" class="header-action" aria-label="截图记账">${icon('edit')}<span>截图</span></button></div>
     </header>
     <div id="storage-banner"></div>
     <main class="workspace">
@@ -79,6 +82,29 @@ app.innerHTML = `
 const editor = document.createElement('section');
 editor.className = 'editor-card';
 const dialog = document.querySelector<HTMLDialogElement>('#entry-dialog')!;
+const importFlow = createImportFlow({
+  entries: () => entries,
+  save: persist,
+  reload: loadEntries,
+  storageError: () => storageError,
+  saved: (added, duplicates) => {
+    if (added.length) {
+      month = added.map(entry => entry.date.slice(0, 7)).sort().at(-1)!;
+      lastImportIds = added.map(entry => entry.id);
+    }
+    const monthCount = new Set(added.map(entry => entry.date.slice(0, 7))).size;
+    filter = 'all'; activeTab = 'ledger';
+    notice = added.length ? `已导入 ${added.length} 笔，涉及 ${monthCount} 个月；正在查看 ${monthLabel()}。${duplicates ? `已跳过 ${duplicates} 笔重复记录。` : ''}` : '本次所选记录已经存在，账本未增加重复账单。';
+    renderLedger(); announce(notice);
+  },
+  adoptScreenshot: candidate => {
+    if (!canDiscard()) return false;
+    resetDraft(); draft = { ...candidate }; dirty = true; draftSource = 'screenshot';
+    renderForm();
+    queueMicrotask(() => openEditor(document.querySelector<HTMLElement>('#open-screenshot')!));
+    return true;
+  },
+});
 
 function loadEntries() {
   try {
@@ -141,8 +167,8 @@ function renderLedger() {
   document.querySelector('#ledger-content')!.innerHTML = `
     <div class="section-eyebrow">我的日常账本 <span>人民币 · CNY</span></div>
     <div class="month-toolbar">
-      <div class="month-title"><h1>${monthLabel()}</h1>${month !== currentMonth() ? '<button class="text-button" id="current-month" type="button">回到本月</button>' : '<span class="this-month">本月</span>'}</div>
-      <div class="month-controls"><button type="button" class="icon-button" id="previous-month" aria-label="上个月">${icon('left')}</button><button type="button" class="icon-button" id="next-month" aria-label="下个月">${icon('right')}</button></div>
+      <div class="month-title"><h1 aria-label="${monthLabel()}"><label class="sr-only" for="month-select">选择月份</label><input type="month" id="month-select" class="month-select" min="1900-01" max="2100-12" value="${month}"/></h1>${month !== currentMonth() ? '<button class="text-button" id="current-month" type="button">回到本月</button>' : '<span class="this-month">本月</span>'}</div>
+      <div class="month-controls"><button type="button" class="icon-button" id="previous-month" aria-label="上个月" ${month <= '1900-01' ? 'disabled' : ''}>${icon('left')}</button><button type="button" class="icon-button" id="next-month" aria-label="下个月" ${month >= '2100-12' ? 'disabled' : ''}>${icon('right')}</button></div>
     </div>
     <section class="balance-card" aria-label="月度收支">
       <div class="balance-top"><span>本月结余</span><span class="balance-symbol">${icon('book')}</span></div>
@@ -166,7 +192,19 @@ function renderLedger() {
       </div>
     </section>
     ${notice ? `<p class="save-notice" role="status">${icon('check')}${esc(notice)}</p>` : ''}
+    ${lastImportIds.some(id => entries.some(entry => entry.id === id)) ? `<div class="import-undo"><span>最近一次导入仍可撤销</span><button type="button" id="undo-last-import" class="button-secondary">撤销本次导入</button></div>` : ''}
   `;
+  document.querySelector('#undo-last-import')?.addEventListener('click', () => {
+    const ids = new Set(lastImportIds);
+    const count = entries.filter(entry => ids.has(entry.id)).length;
+    if (!count || !window.confirm(`撤销本次导入的 ${count} 笔记录？这些记录后续的编辑也会一并删除；之后手工新增和其他账单会保留。`)) return;
+    if (!persist(entries.filter(entry => !ids.has(entry.id)))) return;
+    lastImportIds = []; notice = `已撤销 ${count} 笔导入记录，其他账单已保留。`; renderLedger(); announce(notice);
+  });
+  document.querySelector<HTMLInputElement>('#month-select')!.addEventListener('change', event => {
+    const selected = (event.target as HTMLInputElement).value;
+    if (/^\d{4}-(0[1-9]|1[0-2])$/.test(selected) && selected >= '1900-01' && selected <= '2100-12') { month = selected; notice = ''; renderLedger(); }
+  });
   document.querySelector('#previous-month')!.addEventListener('click', () => changeMonth(-1));
   document.querySelector('#next-month')!.addEventListener('click', () => changeMonth(1));
   document.querySelector('#current-month')?.addEventListener('click', () => { month = currentMonth(); notice = ''; renderLedger(); });
@@ -245,7 +283,7 @@ function renderForm() {
 function clearFormError() { const element = editor.querySelector<HTMLParagraphElement>('#form-error')!; element.hidden = true; element.textContent = ''; }
 function showFormError(text: string) { const element = editor.querySelector<HTMLParagraphElement>('#form-error'); if (element) { element.hidden = false; element.textContent = text; } announce(text); }
 function canDiscard() { return !dirty || window.confirm('放弃尚未保存的记录？'); }
-function resetDraft() { editedEntry = null; draft = emptyDraft(); dirty = false; }
+function resetDraft() { editedEntry = null; draft = emptyDraft(); dirty = false; draftSource = undefined; }
 
 function submitEntry(event: SubmitEvent) {
   event.preventDefault();
@@ -256,8 +294,10 @@ function submitEntry(event: SubmitEvent) {
       id: editedEntry?.id ?? crypto.randomUUID(), type: draft.type, amountCents,
       categoryId: draft.categoryId, date: draft.date, note: draft.note.trim(),
       createdAt: editedEntry?.createdAt ?? Date.now(),
+      ...(draftSource ? { source: draftSource } : {}),
     };
     validateEntry(entry);
+    if (draftSource === 'screenshot' && entries.some(existing => existing.date === entry.date && existing.type === entry.type && existing.amountCents === entry.amountCents) && !window.confirm('账本已有同日、同金额、同方向的记录。确认这是一笔不同的交易，仍要保存？')) return;
     if (!persist(upsertEntry(entries, entry))) return;
     const wasEditing = editedEntry !== null;
     month = entry.date.slice(0, 7);
@@ -278,6 +318,7 @@ function beginEdit(id: string, trigger: HTMLElement) {
   const entry = entries.find(item => item.id === id);
   if (!entry) return;
   editedEntry = entry;
+  draftSource = undefined;
   draft = { type: entry.type, amount: (entry.amountCents / 100).toFixed(2), categoryId: entry.categoryId, date: entry.date, note: entry.note };
   dirty = false;
   renderForm();
@@ -317,21 +358,26 @@ function attemptClose() {
 }
 
 function placeEditor() {
-  if (narrow.matches) document.querySelector('#mobile-editor')!.append(editor);
+  if (narrow.matches) {
+    document.querySelector('#mobile-editor')!.append(editor);
+    if (dirty && !dialog.open && !document.querySelector<HTMLDialogElement>('#import-dialog')?.open) dialog.showModal();
+  }
   else {
     if (dialog.open) dialog.close();
     document.querySelector('#desktop-editor')!.append(editor);
   }
 }
 
+document.querySelector('#open-import')!.addEventListener('click', event => importFlow.open(event.currentTarget as HTMLElement));
+document.querySelector('#open-screenshot')!.addEventListener('click', event => importFlow.open(event.currentTarget as HTMLElement, 'screenshot'));
 document.querySelector('#mobile-add')!.addEventListener('click', event => openEditor(event.currentTarget as HTMLElement));
 document.querySelector('.brand')!.addEventListener('click', event => { event.preventDefault(); month = currentMonth(); activeTab = 'ledger'; filter = 'all'; renderLedger(); });
 dialog.addEventListener('cancel', event => { event.preventDefault(); attemptClose(); });
 narrow.addEventListener('change', placeEditor);
-window.addEventListener('beforeunload', event => { if (dirty) { event.preventDefault(); event.returnValue = ''; } });
+window.addEventListener('beforeunload', event => { if (dirty || importFlow.hasUnsavedChanges()) { event.preventDefault(); event.returnValue = ''; } });
 window.addEventListener('storage', event => {
   if (event.storageArea === window.localStorage && (event.key === STORAGE_KEY || event.key === null)) {
-    if (dirty) { storageError = '账本已在另一个页面发生变化。请保存当前填写的内容到别处，再重新读取，避免覆盖。'; storageReady = false; renderBanner(); }
+    if (dirty || importFlow.hasUnsavedChanges()) { storageError = '账本已在另一个页面发生变化。请保存当前填写的内容到别处，再重新读取，避免覆盖。'; storageReady = false; renderBanner(); }
     else loadEntries();
   }
 });

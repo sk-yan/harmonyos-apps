@@ -1,0 +1,34 @@
+{
+  "synthetic-wechat-large.csv": {
+    "source": "wechat",
+    "readyCount": 300,
+    "expenseCents": 36900,
+    "incomeCents": 0,
+    "encoding": "UTF-8 BOM",
+    "purpose": "over64KiB sequential FD reads",
+    "bytes": 181629,
+    "sha256": "b96db5fd7942fb777235b59fb62340c57f0e4dab7fa9409ef7d03c4468bdd9d7"
+  },
+  "synthetic-alipay-gbk.csv": {
+    "source": "alipay",
+    "readyCount": 2,
+    "expenseCents": 1025,
+    "incomeCents": 3050,
+    "encoding": "GBK",
+    "purpose": "Chinese decode and exact amounts",
+    "bytes": 346,
+    "sha256": "cb9ef4f25cfa2a161264340cce0d97459bc43710dcff94cad5ecc2b726c3b399"
+  },
+  "synthetic-wechat-deflated.xlsx": {
+    "source": "wechat",
+    "readyCount": 2,
+    "expenseCents": 1230,
+    "incomeCents": 20000,
+    "encoding": "OOXML DEFLATE",
+    "firstTradeId": "000092320260910000000000001",
+    "firstTime": "2026-09-10 10:00:00",
+    "purpose": "native raw-inflate, shared strings, Excel date style",
+    "bytes": 2322,
+    "sha256": "4399244254ba8d7498b1a742736af20e2e46afe407bcad5cac16fd3844890aa3"
+  }
+}

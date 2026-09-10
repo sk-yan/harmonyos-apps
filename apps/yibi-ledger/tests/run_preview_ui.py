@@ -83,11 +83,14 @@ def main():
                 if time.monotonic() >= deadline:
                     raise TimeoutError(f'Vite readiness timed out. See {log_path}')
                 time.sleep(.15)
-            result = subprocess.run(
-                [sys.executable, str(APP_ROOT / 'tests/preview_ui_test.py')],
-                cwd=APP_ROOT, env=env, timeout=timeout, check=False,
-            )
-            return result.returncode
+            for suite in ['preview_ui_test.py', 'preview_import_test.py']:
+                result = subprocess.run(
+                    [sys.executable, str(APP_ROOT / 'tests' / suite)],
+                    cwd=APP_ROOT, env=env, timeout=timeout, check=False,
+                )
+                if result.returncode:
+                    return result.returncode
+            return 0
         finally:
             stop_server(server)
 

@@ -1,10 +1,10 @@
 # 构建、模拟器与真机安装
 
-一笔记账使用 ArkTS + ArkUI，当前原生版本为 `1.0.0`，包名为 `com.shengkun.yibiledger`。本次发布是未签名的模拟器预览，Mate X6 真机尚未完成签名、安装与验收。
+一笔记账使用 ArkTS + ArkUI，当前原生版本为 `1.1.0`、版本码为 `1001000`，包名为 `com.shengkun.yibiledger`。公开附件为未签名开发预览。在 Mate X6（API 24）已完成本地调试签名、安装启动和部分 GBK 账单检查；完整真机回归和图片 OCR 尚未完成。个人签名材料与签名包不公开分发。
 
 ## 开发环境
 
-本次已重新验证的原生环境为 macOS Apple Silicon、DevEco Studio 26.0.0.821 及配套 SDK 26、Node.js 24。模拟器系统为 HarmonyOS 6.1.0（API 23），设备使用 Mate X5 折叠屏模板。这不是 Mate X6 真机测试。
+开发使用 macOS Apple Silicon、DevEco Studio 26.0.0.821 及配套 SDK 26、Node.js 24。模拟器系统为 HarmonyOS 6.1.0（API 23），设备使用 Mate X5 折叠屏模板。这不是 Mate X6 真机测试；本次最终验收状态见[验证说明](../../../docs/VALIDATION.md)。
 
 项目配置的最低兼容和目标 SDK 为 `6.0.0(20)`；该工程配置、SDK 工具包编号和手机设置中的系统版本含义不同。迁移到其他工具版本时，应以实际原生构建和运行结果为准。
 
@@ -73,9 +73,17 @@ python3 scripts/deveco.py yibi-ledger run --module entry --device '<device-id>'
 
 自动原生交互测试位于 `tests/native_ui_test.py`。运行前先阅读脚本的环境参数，并使用已解锁、已完成输入法引导的专用测试模拟器和空账本。测试会创建、编辑、删除带 `YIBI_TEST_` 标记的账单，不适合直接对日常账本运行。
 
+## 文件导入与 OCR 环境
+
+1.1 支持 UTF-8 / GBK CSV、普通未加密 XLSX 和带表头的粘贴文本。每个文件最多 8 MiB、5,000 笔明细。表格解析保留交易单号原始字符串，不执行公式；外层 ZIP 请先解压，不支持旧 XLS 或加密表格。使用[合成测试文件](../tests/fixtures/import/)时，请勿混入真实个人账单。
+
+原生文件选择和解码使用系统 API，OCR 使用 Core Vision Kit。**系统 OCR 不支持模拟器。** 在模拟器中可以验证文件导入、粘贴识别文字、字段核对和保存，但不能将这些结果当作真实图片识别通过。真实手机需分别检查截图选择器、OCR 服务可用性、识别准确性、取消操作与草稿保留。
+
+浏览器预览通过同源资源加载识别脚本、中英文模型和 WebAssembly，在本机执行 OCR，不调用外部图片识别服务。先在仓库根目录运行 `npm ci`，再启动预览；相关第三方说明见[浏览器依赖说明](../preview/THIRD_PARTY_NOTICES.md)。浏览器与原生使用相同的账单解析、去重和文字草稿逻辑，但两端的文件选择器与 OCR 引擎需要分别验收。
+
 ## 安装到 Mate X6
 
-真机安装还需要 HarmonyOS 认可的签名与设备调试环境，不能把未签名 HAP 当作普通下载即装的安装包。以下步骤尚未在 Mate X6 完成验收：
+真机安装还需要 HarmonyOS 认可的签名与设备调试环境，不能把未签名 HAP 当作普通下载即装的安装包。下面是自行构建的完整流程；本次已完成签名、安装与基础检查，完整功能验收仍待完成：
 
 1. 按[华为真机运行说明](https://developer.huawei.com/consumer/cn/doc/harmonyos-guides/ide-run-device)启用开发者模式与 USB 调试，使用支持数据传输的线连接电脑，在手机和电脑上允许必要的连接提示。先确认 `device list` 能识别该手机。
 2. 在 DevEco Studio 打开脚本生成的 ASCII 工程副本并完成 Sync。IDE 界面打开与同步成功不等于已经编译或安装成功。
@@ -87,6 +95,8 @@ python3 scripts/deveco.py yibi-ledger run --module entry --device '<device-id>'
 
 ## 数据与验证边界
 
-账本只保存在当前应用沙箱，卸载或清除应用数据会删除记录；第一版没有云同步和导出。浏览器预览的账本独立保存在浏览器中。
+账本只保存在当前应用沙箱，卸载或清除应用数据会删除记录；当前没有云同步和导出。浏览器预览的账本独立保存在浏览器中。
 
-合集工程已重新通过 20 项核心与存储模拟测试、8 项构建辅助脚本测试、9 组浏览器验收和 8 组鸿蒙模拟器验收。完整 CodeLinter 的性能分析器发生内部错误，补充 ESLint 检查未报告缺陷；不能记作全量原生 Lint 通过。本次记录见 [verification-preview.1.json](verification-preview.1.json)，检查范围见[验证说明](../../../docs/VALIDATION.md)。
+1.1 保持 `ledger-v1.json` 格式可读，新增导入身份字段为可选字段。导入后应避免降级到 1.0：旧版保存时会丢失这些字段，影响后续重复识别。撤销最近一批导入只在当前会话有效，不能替代备份。
+
+当前共享核心、存储模拟与 XLSX 合计 58 项测试及 TypeScript 检查通过，最终设备和浏览器验收见[1.1 改进记录](../../../docs/IMPROVEMENTS-1.1.md)。1.0 的历史基线保留在 [verification-preview.1.json](verification-preview.1.json)。此前完整 CodeLinter 的性能分析器发生内部错误，补充 ESLint 结果不能记作 1.1 全量原生 Lint 通过。

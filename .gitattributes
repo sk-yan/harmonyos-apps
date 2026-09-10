@@ -1,0 +1,3 @@
+# Preserve exact BOM, CRLF, and GBK bytes for platform decoding regression fixtures.
+apps/yibi-ledger/tests/fixtures/native-import/*.csv -text -diff
+apps/yibi-ledger/tests/fixtures/native-import/*.xlsx binary

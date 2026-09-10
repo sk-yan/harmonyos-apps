@@ -1,5 +1,6 @@
 /** All monetary values are integer CNY cents; no arithmetic uses decimal yuan. */
 export type EntryType = 'expense' | 'income';
+export type LedgerSource = 'wechat' | 'alipay' | 'screenshot';
 
 export interface LedgerEntry {
   id: string;
@@ -9,6 +10,11 @@ export interface LedgerEntry {
   date: string;
   note: string;
   createdAt: number;
+  /** Import identity is independent of editable amount, date, category and note. */
+  source?: LedgerSource;
+  tradeId?: string;
+  /** A comparison hint, never sufficient by itself to discard a transaction. */
+  importFingerprint?: string;
 }
 
 export interface Category {
@@ -64,11 +70,21 @@ function cloneCategory(category: Category): Category {
 }
 
 function cloneEntry(entry: LedgerEntry): LedgerEntry {
-  return {
+  const result: LedgerEntry = {
     id: entry.id, type: entry.type, amountCents: entry.amountCents,
     categoryId: entry.categoryId, date: entry.date, note: entry.note,
     createdAt: entry.createdAt
   };
+  if (entry.source !== undefined) {
+    result.source = entry.source;
+  }
+  if (entry.tradeId !== undefined) {
+    result.tradeId = entry.tradeId;
+  }
+  if (entry.importFingerprint !== undefined) {
+    result.importFingerprint = entry.importFingerprint;
+  }
+  return result;
 }
 
 export function getCategories(type: EntryType): Category[] {
@@ -183,6 +199,20 @@ export function validateEntry(entry: LedgerEntry): void {
   if (!Number.isSafeInteger(entry.createdAt) || entry.createdAt < 0 || entry.createdAt > 8640000000000000) {
     throw new Error('账目创建时间不正确');
   }
+  if (entry.source !== undefined && entry.source !== 'wechat' && entry.source !== 'alipay' && entry.source !== 'screenshot') {
+    throw new Error('账目导入来源不正确');
+  }
+  if (entry.tradeId !== undefined &&
+    (typeof entry.tradeId !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9_-]{5,127}$/.test(entry.tradeId) ||
+      /^\d+(?:\.\d+)?[eE][+-]?\d+$/.test(entry.tradeId) ||
+      (entry.source !== 'wechat' && entry.source !== 'alipay'))) {
+    throw new Error('账目交易单号或来源不正确');
+  }
+  if (entry.importFingerprint !== undefined &&
+    (typeof entry.importFingerprint !== 'string' || entry.importFingerprint.length === 0 ||
+      entry.importFingerprint.length > 4096 || entry.source === undefined)) {
+    throw new Error('账目导入比对信息不正确');
+  }
 }
 
 function checkedAdd(left: number, right: number): number {
@@ -262,9 +292,23 @@ export function categoryTotals(entries: LedgerEntry[]): CategoryTotal[] {
 export function upsertEntry(entries: LedgerEntry[], entry: LedgerEntry): LedgerEntry[] {
   validateEntries(entries);
   validateEntry(entry);
+  const previous = entries.find((item: LedgerEntry) => item.id === entry.id);
+  const updated = cloneEntry(entry);
+  if (previous !== undefined) {
+    if (updated.source === undefined && previous.source !== undefined) {
+      updated.source = previous.source;
+    }
+    if (updated.tradeId === undefined && previous.tradeId !== undefined) {
+      updated.tradeId = previous.tradeId;
+    }
+    if (updated.importFingerprint === undefined && previous.importFingerprint !== undefined) {
+      updated.importFingerprint = previous.importFingerprint;
+    }
+  }
+  validateEntry(updated);
   const result = entries.filter((item: LedgerEntry) => item.id !== entry.id)
     .map((item: LedgerEntry) => cloneEntry(item));
-  result.push(cloneEntry(entry));
+  result.push(updated);
   summarize(result);
   return result.sort(newestFirst);
 }

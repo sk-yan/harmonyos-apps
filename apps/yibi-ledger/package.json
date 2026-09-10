@@ -1,6 +1,6 @@
 {
   "name": "@harmonyos-apps/yibi-ledger",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "type": "module",
   "engines": {
@@ -23,5 +23,11 @@
     "typescript": "^7.0.2",
     "vite": "^8.2.2"
   },
-  "description": "Offline HarmonyOS personal ledger with a browser preview and shared integer-cent accounting model."
+  "description": "Offline HarmonyOS personal ledger with a browser preview and shared integer-cent accounting model.",
+  "dependencies": {
+    "tesseract.js": "7.0.0",
+    "tesseract.js-core": "7.0.0",
+    "@tesseract.js-data/chi_sim": "1.0.0",
+    "@tesseract.js-data/eng": "1.0.0"
+  }
 }

@@ -185,7 +185,7 @@ def main():
         no_overflow(page)
         page.screenshot(path=str(OUTPUT / 'unfolded-editor.png'), full_page=True)
         page.set_viewport_size({'width': 390, 'height': 844})
-        page.locator('#mobile-add').click()
+        expect(page.locator('#entry-dialog')).to_be_visible()
         expect(page.get_by_label('金额', exact=True)).to_have_value('12.80')
         page.once('dialog', lambda dialog: dialog.dismiss())
         page.keyboard.press('Escape')
