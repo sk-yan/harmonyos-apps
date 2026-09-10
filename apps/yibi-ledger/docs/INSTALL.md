@@ -1,6 +1,6 @@
 # 构建、模拟器与真机安装
 
-一笔记账使用 ArkTS + ArkUI，当前原生版本为 `1.1.0`、版本码为 `1001000`，包名为 `com.shengkun.yibiledger`。公开附件为未签名开发预览。在 Mate X6（API 24）已完成本地调试签名、安装启动和部分 GBK 账单检查；完整真机回归和图片 OCR 尚未完成。个人签名材料与签名包不公开分发。
+一笔记账使用 ArkTS + ArkUI，当前原生版本为 `1.1.0`、版本码为 `1001001`，包名为 `com.shengkun.yibiledger`。公开附件为未签名开发预览。在 Mate X6（API 24）已完成本地调试签名安装、外屏账单重点流程与系统图片 OCR 验证。个人签名材料与签名包不公开分发。
 
 ## 开发环境
 
@@ -83,7 +83,7 @@ python3 scripts/deveco.py yibi-ledger run --module entry --device '<device-id>'
 
 ## 安装到 Mate X6
 
-真机安装还需要 HarmonyOS 认可的签名与设备调试环境，不能把未签名 HAP 当作普通下载即装的安装包。下面是自行构建的完整流程；本次已完成签名、安装与基础检查，完整功能验收仍待完成：
+真机安装还需要 HarmonyOS 认可的签名与设备调试环境，不能把未签名 HAP 当作普通下载即装的安装包。下面是自行构建的完整流程；本次已完成签名安装与外屏重点流程检查，未覆盖全部物理内屏方向和大字体组合：
 
 1. 按[华为真机运行说明](https://developer.huawei.com/consumer/cn/doc/harmonyos-guides/ide-run-device)启用开发者模式与 USB 调试，使用支持数据传输的线连接电脑，在手机和电脑上允许必要的连接提示。先确认 `device list` 能识别该手机。
 2. 在 DevEco Studio 打开脚本生成的 ASCII 工程副本并完成 Sync。IDE 界面打开与同步成功不等于已经编译或安装成功。

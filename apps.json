@@ -7,12 +7,12 @@
       "path": "apps/yibi-ledger",
       "bundleName": "com.shengkun.yibiledger",
       "nativeVersion": "1.1.0",
-      "releaseTag": "yibi-ledger-v1.1.0-preview.1",
-      "status": "simulator-preview",
+      "releaseTag": "yibi-ledger-v1.1.0-preview.2",
+      "status": "device-preview",
       "signed": false,
-      "physicalDeviceTested": false,
+      "physicalDeviceTested": true,
       "description": "本地收支记录、微信和支付宝账单导入、截图辅助录入与月度统计，适配窄屏和折叠屏展开布局。",
-      "physicalDeviceStatus": "signed-debug-installed-partial-validation"
+      "physicalDeviceStatus": "mate-x6-outer-screen-smoke-passed"
     }
   ]
 }

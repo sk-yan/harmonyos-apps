@@ -477,34 +477,35 @@ struct Index {
         .backgroundColor('#E7ECE4').fontColor(GREEN)
         .id('month-next').accessibilityText('下个月').enabled(this.month < '2100-12')
         .onClick(() => { this.month = shiftMonth(this.month, 1); this.savedNotice = ''; })
-    }.width('100%').margin({ bottom: 16 })
+    }.width('100%').margin({ bottom: this.wide ? 16 : 8 })
   }
 
   @Builder
   overview() {
-    Column({ space: 18 }) {
+    Column({ space: this.wide ? 18 : 12 }) {
       Row() {
-        Text('本月结余').fontSize(14).fontColor('#D4E4D8')
+        Text('本月结余').fontSize(this.wide ? 14 : 12).fontColor('#D4E4D8')
         Blank()
-        Text('CNY · 人民币').fontSize(12).fontColor('#D4E4D8')
+        Text('CNY · 人民币').fontSize(this.wide ? 12 : 11).fontColor('#D4E4D8')
       }.width('100%')
       Text(`¥ ${formatAmount(this.totals().balanceCents)}`)
-        .fontSize(36).minFontSize(24).maxFontSize(36).maxLines(1)
+        .fontSize(this.wide ? 36 : 28).minFontSize(this.wide ? 24 : 20)
+        .maxFontSize(this.wide ? 36 : 28).maxLines(1)
         .fontWeight(FontWeight.Medium).fontColor('#FFFFFF').width('100%')
       Row() {
-        Column({ space: 7 }) {
-          Text('本月收入').fontSize(13).fontColor('#D4E4D8')
-          Text(`+ ${formatAmount(this.totals().incomeCents)}`).fontSize(18).fontColor('#FFFFFF')
-            .maxLines(1).minFontSize(12).maxFontSize(18)
+        Column({ space: this.wide ? 7 : 4 }) {
+          Text('本月收入').fontSize(this.wide ? 13 : 12).fontColor('#D4E4D8')
+          Text(`+ ${formatAmount(this.totals().incomeCents)}`).fontSize(this.wide ? 18 : 16).fontColor('#FFFFFF')
+            .maxLines(1).minFontSize(12).maxFontSize(this.wide ? 18 : 16)
         }.alignItems(HorizontalAlign.Start).layoutWeight(1)
-        Column({ space: 7 }) {
-          Text('本月支出').fontSize(13).fontColor('#D4E4D8')
-          Text(`− ${formatAmount(this.totals().expenseCents)}`).fontSize(18).fontColor('#FFFFFF')
-            .maxLines(1).minFontSize(12).maxFontSize(18)
+        Column({ space: this.wide ? 7 : 4 }) {
+          Text('本月支出').fontSize(this.wide ? 13 : 12).fontColor('#D4E4D8')
+          Text(`− ${formatAmount(this.totals().expenseCents)}`).fontSize(this.wide ? 18 : 16).fontColor('#FFFFFF')
+            .maxLines(1).minFontSize(12).maxFontSize(this.wide ? 18 : 16)
         }.alignItems(HorizontalAlign.Start).layoutWeight(1)
       }.width('100%')
-    }.width('100%').padding(22).backgroundColor(GREEN).borderRadius(24)
-      .alignItems(HorizontalAlign.Start).margin({ bottom: 18 })
+    }.width('100%').padding(this.wide ? 22 : 16).backgroundColor(GREEN).borderRadius(this.wide ? 24 : 20)
+      .alignItems(HorizontalAlign.Start).margin({ bottom: this.wide ? 18 : 12 })
   }
 
   @Builder
@@ -532,7 +533,7 @@ struct Index {
           .fontSize(17).fontWeight(FontWeight.Medium).fontColor(entry.type === 'expense' ? EXPENSE : GREEN)
         Text(entry.date.substring(5).replace('-', '月') + '日').fontSize(12).fontColor(MUTED)
       }.alignItems(HorizontalAlign.End)
-    }.width('100%').padding({ top: 15, bottom: 15 })
+    }.width('100%').padding({ top: this.wide ? 15 : 12, bottom: this.wide ? 15 : 12 })
       .id(`entry-${entry.id}`).accessibilityText(`${entry.date} ${categoryById(entry.categoryId).label} ${entry.type === 'expense' ? '支出' : '收入'} ${formatAmount(entry.amountCents)}元，${entry.note}，点击编辑`)
       .onClick(() => { this.editEntry(entry); }).enabled(!this.saving)
   }
@@ -557,7 +558,7 @@ struct Index {
         this.filterButton('收入', 'income')
         Blank()
         Text(`${this.visibleEntries().length} 笔`).fontSize(12).fontColor(MUTED)
-      }.width('100%').margin({ top: 14, bottom: 4 })
+      }.width('100%').margin({ top: this.wide ? 14 : 8, bottom: this.wide ? 4 : 2 })
       List() {
         if (this.visibleEntries().length === 0) {
           ListItem() {
@@ -763,15 +764,19 @@ struct Index {
             Button('截图记账').id('ledger-receipt').layoutWeight(1).height(44).fontSize(14)
               .backgroundColor('#E7ECE4').fontColor(GREEN).enabled(!this.saving)
               .onClick(() => { this.openImport('receipt'); })
-          }.width('100%').margin({ bottom: 12 })
-          if (this.savedNotice) {
-            Text(this.savedNotice).id('ledger-notice').fontSize(12).fontColor(GREEN).lineHeight(18)
-              .width('100%').margin({ bottom: 8 }).maxLines(3)
-          }
-          if (this.lastImportIds.length > 0) {
-            Button('撤销本次导入').id('import-undo').height(40).fontSize(13).fontColor(EXPENSE)
-              .backgroundColor('#F6E8E1').margin({ bottom: 8 }).enabled(!this.saving)
-              .onClick(() => { this.undoImport(); })
+          }.width('100%').margin({ bottom: this.wide ? 12 : 8 })
+          if (this.savedNotice || this.lastImportIds.length > 0) {
+            Row({ space: 8 }) {
+              Text(this.savedNotice || '最近一次导入可撤销').id('ledger-notice')
+                .fontSize(12).fontColor(GREEN).lineHeight(18).layoutWeight(1).maxLines(2)
+                .textOverflow({ overflow: TextOverflow.Ellipsis })
+                .accessibilityText(this.savedNotice || '最近一次导入可撤销')
+              if (this.lastImportIds.length > 0) {
+                Button('撤销本次导入').id('import-undo').width(112).height(44).fontSize(13).fontColor(EXPENSE)
+                  .backgroundColor('#F6E8E1').enabled(!this.saving)
+                  .onClick(() => { this.undoImport(); })
+              }
+            }.width('100%').height(48).margin({ bottom: this.wide ? 8 : 4 })
           }
           if (this.wide) {
             Row({ space: 24 }) {
@@ -781,8 +786,8 @@ struct Index {
             }.layoutWeight(1).width('100%').alignItems(VerticalAlign.Top)
           } else {
             Column() { this.ledgerPanel() }.layoutWeight(1).width('100%')
-            Button('+ 记一笔').id('ledger-add').height(54).width('100%').fontSize(18).backgroundColor(GREEN).fontColor('#FFFFFF')
-              .margin({ top: 12, bottom: 8 }).enabled(!this.saving)
+            Button('+ 记一笔').id('ledger-add').height(48).width('100%').fontSize(18).backgroundColor(GREEN).fontColor('#FFFFFF')
+              .margin({ top: 6, bottom: 4 }).enabled(!this.saving)
               .onClick(() => { this.sheetOpen = true; })
           }
         }

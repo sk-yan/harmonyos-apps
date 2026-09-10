@@ -1,0 +1,186 @@
+{
+  "schemaVersion": 1,
+  "appId": "yibi-ledger",
+  "releaseTag": "yibi-ledger-v1.1.0-preview.2",
+  "nativeVersion": "1.1.0",
+  "versionCode": 1001001,
+  "checkedAt": "2026-09-10",
+  "environment": {
+    "host": "macOS Apple Silicon",
+    "devecoStudio": "26.0.0.821",
+    "devecoCli": "1.3.0-stable",
+    "emulator": "HarmonyOS 6.1.0(23), Mate X5 foldable template"
+  },
+  "checks": {
+    "unitAndStorageAndSpreadsheet": {
+      "passed": 58
+    },
+    "nativeMirrorProtection": {
+      "passed": 8
+    },
+    "typecheck": "passed",
+    "previewBuild": "passed",
+    "browserLegacy": {
+      "passed": 9,
+      "scenarios": [
+        "Empty start, invalid amount rejection, exact expense/income and balance",
+        "Edit replaces one record; expense statistics and income filter agree",
+        "Move to previous month, reload persistence, cancel and confirm deletion",
+        "Storage quota failure keeps original ledger and the unsaved form",
+        "Empty, corrupt and unsupported-version storage cannot be overwritten",
+        "Stale browser snapshot cannot overwrite newer data; explicit reread permits merge",
+        "Real second-page clear event prevents writing until reread and preserves draft",
+        "Fold/unfold keeps draft; Esc respects discard choice; focus restores; notes render safely",
+        "Date bounds, amount ceiling and 100-character notes; maximum amount fits 320px screen"
+      ],
+      "runtimeErrors": [],
+      "scope": "Browser preview only; not native ArkUI runtime or HAP validation"
+    },
+    "browserImportAndOcr": {
+      "passed": 12,
+      "scenarios": [
+        "UTF-8 CSV preview is read-only, review rows require consent, cross-month totals and repeat import agree",
+        "GBK Alipay file preserves Chinese text, thousand-separated money and long transaction IDs",
+        "Real DEFLATE XLSX is decoded locally, long IDs remain strings and merchant text cannot execute HTML",
+        "Possible manual duplicate needs individual confirmation; conflicting same-ID rows cannot be imported; cancel preserves ledger",
+        "Import persistence failure retains preview and makes no partial ledger change",
+        "Stale import preview cannot overwrite concurrent records; explicit reread revalidates before merging",
+        "Undo last import removes its edited records only and preserves later manual entries",
+        "Screenshot text is only an editable draft; missing money/date/direction cannot save and category defaults to Other",
+        "Cancelling screenshot review preserves the previous unsaved manual draft",
+        "Real Chinese screenshot OCR with all nonlocal requests blocked yields amount/date/direction without writing records",
+        "Cancelling OCR ignores late results and never applies a pending screenshot",
+        "Malformed files cannot change ledger; paginated selection retains decisions across the whole file"
+      ],
+      "runtimeErrors": [],
+      "externalRequests": [],
+      "syntheticChineseOcr": {
+        "seconds": 0.95,
+        "rawText": "支付成功\n\n支出\n\n实付金额\n\n¥38.50\n\n商户名称: 测试咖啡店\n\n交易时间: 2026-09-10 12:20:00\n\n合成测试账单无真实交易\n",
+        "amount": "38.50",
+        "date": "2026-09-10",
+        "type": "expense"
+      },
+      "scope": "Browser import and local OCR only. No real financial data or native-device OCR."
+    },
+    "productionPreview": {
+      "productionBuild": true,
+      "csvImported": 2,
+      "ocrAmount": "38.50",
+      "ocrDate": "2026-09-10",
+      "ocrDirection": "expense",
+      "ocrSeconds": 0.83,
+      "externalRequests": [],
+      "runtimeErrors": []
+    },
+    "nativeBuild": {
+      "status": "passed",
+      "buildMode": "debug",
+      "publicHapSigned": false
+    },
+    "nativeImport": {
+      "passed": 8,
+      "stages": [
+        "Real system picker reads UTF-8 CSV larger than 64 KiB",
+        "Repeated 300-row import is recognized and not selected",
+        "Batch undo restores empty ledger after large import",
+        "GBK Alipay file imports exact income and expense",
+        "Native DEFLATE XLSX preserves long IDs and blocks conflicts after editing",
+        "Undo removes edited batch entries but retains later manual entry",
+        "Receipt text is only a draft until fields are explicitly acknowledged",
+        "All acceptance fixtures removed from ledger"
+      ],
+      "segmented": true,
+      "fullSingleRunPassed": false,
+      "segmentScope": [
+        {
+          "passed": 6,
+          "scope": "CSV, GBK, XLSX, duplicate/conflict handling and selective undo; these algorithms were unchanged by later keyboard, empty-state layout and screenshot-file-entry changes"
+        },
+        {
+          "passed": 2,
+          "scope": "receipt explicit acknowledgement, keyboard Back priority and final fixture cleanup on final focus-aware HAP"
+        }
+      ],
+      "keyboardBackPriorityPassed": true,
+      "testFixturesRemoved": true
+    },
+    "nativeRegression": {
+      "passed": 8,
+      "stages": [
+        "Empty ledger and native unfolded two-column layout",
+        "Real native expense/income persistence and exact balance",
+        "Edit updates one record and native category statistics",
+        "Month filtering and process restart retain exact ledger data",
+        "Native folded-screen layout",
+        "Draft retained when unfolding",
+        "Folded draft can be safely discarded without adding a bill",
+        "Confirmed deletion removes only test fixtures and restores empty ledger"
+      ],
+      "testFixturesRemoved": true,
+      "scope": "Previously validated unchanged business and keyboard logic; compact layout is separately verified on the final phone build"
+    },
+    "nativeImageOcr": {
+      "status": "passed",
+      "device": "Mate X6 / API 24",
+      "scope": "One clear synthetic PNG selected through the system file picker; recognition, editable draft, explicit acknowledgement, save and deletion",
+      "recognizedAmount": "38.50",
+      "recognizedDate": "2026-09-10",
+      "versionCodeTested": 1001000,
+      "ocrCodeUnchangedInCurrentBuild": true
+    },
+    "fullNativeLint": "not_claimed; earlier_performance_analyzer_internal_error",
+    "nativeImageFileEntry": {
+      "status": "passed",
+      "scope": "System image-file picker returns explicit emulator unsupported message without writing ledger",
+      "testFixturesRemoved": true
+    }
+  },
+  "physicalDeviceValidation": {
+    "status": "targeted-smoke-passed",
+    "model": "Mate X6 / ICL-AL20",
+    "api": 24,
+    "signedDebugInstall": true,
+    "passedChecks": [
+      "App launch",
+      "GBK CSV preview and exact save",
+      "Repeated import identifies both transaction IDs",
+      "Selective batch undo",
+      "Core Vision PNG recognition and confirmed save/delete",
+      "Final compact outer-screen layout"
+    ],
+    "imageOcrCompleted": true,
+    "fullRegressionCompleted": false,
+    "notCovered": [
+      "Real personal bill samples",
+      "Physical inner-screen rotation and large-font combinations",
+      "Gallery picker path separately from document picker"
+    ],
+    "testFixturesRemoved": true,
+    "temporaryFilesRemoved": true,
+    "displayTimeoutRestored": true,
+    "restoredScreenOffMilliseconds": 600000,
+    "finalLayout": {
+      "passed": 2,
+      "stages": [
+        "Mate X6 outer screen shows both complete imported transaction rows",
+        "Compact layout undo restores empty phone ledger"
+      ],
+      "model": "Mate X6 / ICL-AL20",
+      "api": 24,
+      "nativeVersion": "1.1.0",
+      "versionCode": 1001001,
+      "rowHeightsPx": [
+        212,
+        212
+      ],
+      "testFixturesRemoved": true,
+      "syntheticOnly": true
+    }
+  },
+  "hap": {
+    "name": "yibi-ledger-1.1.0-preview.2-unsigned.hap",
+    "bytes": 464340,
+    "sha256": "14df739fcb24d52630d931bc009929ec9c9b7263969992346d86d8eca3793a5c"
+  }
+}
