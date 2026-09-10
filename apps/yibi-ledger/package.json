@@ -1,0 +1,27 @@
+{
+  "name": "@harmonyos-apps/yibi-ledger",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "vite ./preview --host 127.0.0.1 --port 5186 --strictPort",
+    "build:preview": "vite build ./preview --outDir ../dist-preview --emptyOutDir",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test tests/*.test.ts",
+    "test:ui": "npm run test:preview",
+    "test:native": "python3 tests/native_ui_test.py",
+    "check:native": "python3 ../../scripts/deveco.py yibi-ledger doctor",
+    "lint:native": "python3 ../../scripts/deveco.py yibi-ledger check lint entry/src/main/ets --format json",
+    "build:native": "python3 ../../scripts/deveco.py yibi-ledger build --modules entry --build-mode debug",
+    "test:preview": "python3 tests/run_preview_ui.py"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.2",
+    "typescript": "^7.0.2",
+    "vite": "^8.2.2"
+  },
+  "description": "Offline HarmonyOS personal ledger with a browser preview and shared integer-cent accounting model."
+}

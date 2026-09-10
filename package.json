@@ -1,0 +1,14 @@
+{
+  "name": "harmonyos-apps",
+  "version": "0.0.0",
+  "private": true,
+  "workspaces": ["apps/*"],
+  "engines": { "node": ">=24" },
+  "scripts": {
+    "test": "npm test --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "build:preview": "npm run build:preview --workspaces --if-present",
+    "test:preview": "npm run test:preview --workspaces --if-present",
+    "test:tools": "python3 -m unittest discover -s scripts/tests -v"
+  }
+}

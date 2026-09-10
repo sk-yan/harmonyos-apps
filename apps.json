@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "applications": [
+    {
+      "id": "yibi-ledger",
+      "name": "一笔记账",
+      "path": "apps/yibi-ledger",
+      "bundleName": "com.shengkun.yibiledger",
+      "nativeVersion": "1.0.0",
+      "releaseTag": "yibi-ledger-v1.0.0-preview.1",
+      "status": "simulator-preview",
+      "signed": false,
+      "physicalDeviceTested": false,
+      "description": "本地收支记录、账单编辑与月度分类统计，适配窄屏和折叠屏展开布局。"
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "string": [
+    { "name": "module_desc", "value": "离线个人收支账本" },
+    { "name": "EntryAbility_desc", "value": "记录每一笔，照顾好生活" },
+    { "name": "EntryAbility_label", "value": "一笔记账" }
+  ]
+}
